@@ -3,10 +3,26 @@
  *  @date 2022.02.20
  *
  *  this project combines two previous projects:
- *      p5-dialogSystemManualWidth
+ *  1. p5-dialogSystemManualWidth
+ *      An implementation of the dialog boxes found in Metroid Dread which
+ *      uses the original Metroid Dread font, VDL-GigaMaruJr. Since
+ *      textWidth does not work properly for this font, it is manually
+ *      implemented with (expensive) pixel scanning. A cache is required for
+ *      performance reasons.
  *
+ *      → includes code from p5-textFrame
+ *          generate the textFrame graphic using translations and rotations
+ *          perform the 'open dialog box' animation
  *
+ *  2. p5-sphericalGeometry
+ *      This project uses a spherical coordinate system to animate the
+ *      oscillating pyramids that form Adam's 'body' in Metroid Dread.
  *
+ *      https://en.wikipedia.org/wiki/Spherical_coordinate_system
+ *
+ *      It uses the amplitude of the input sound file and a sine function or two
+ *      to oscillate the surface of a sphere to emulate Adam's visual design
+ *      and animation.
  */
 
 let font
@@ -25,20 +41,37 @@ const SOUND_FILE_START = 12
  * chrome; I have it set at 125%, a significant bump up from default.
  * @type {number}
  */
-const FONT_SIZE = 24 /* the font in-game is bold. this needs to be even */
+const FONT_SIZE = 24 // this needs to be even. note: the font in-game is bold
 const LETTER_SPACING = 1.25
 const SPACE_WIDTH = FONT_SIZE / 2
 
-
-// define the hue and saturation for all 3 axes
+/* define the hue and saturation for all 3 axes */
 const X_HUE = 0, X_SAT = 80, Y_HUE = 90, Y_SAT = 80, Z_HUE = 210, Z_SAT = 80
 const DIM = 40 // brightness value for the dimmer negative axis
 const BRIGHT = 75 // brightness value for the brighter positive axis
 
 let dialogBox
-let mode_2D = false
+let passages // our json file input holding many passage objects
+let textList = [] // array of passage text
 
-let passages // our json file input
+/* empty dictionary for our character length cache. used for
+ dialogBox.charWidth to get around the fact that textWidth does not work for
+  VDL-GigaMaruJr.ttf ← giga.ttf */
+let cache = {}
+
+/* variables for the p5-sphericalGeometry part of this project */
+let SPHERE_DETAIL = 24 // number of segments per θ and φ
+let SPHERE_RADIUS = 100
+
+let globe // an n by n 2D array of points on a sphere in (r, θ, φ) triples
+let angle = 0 // we use this as a phase variable to vary our sine waves
+
+// read the amplitude of our voice from the mic
+let voice
+let p5amp
+
+
+
 
 function preload() {
     font = loadFont('data/giga.ttf') // requires manual textWidth method
@@ -48,11 +81,7 @@ function preload() {
     playing = false
 }
 
-/* empty dictionary for our word length cache */
-let cache = {}
 
-/* populate an array of passage text */
-let textList = []
 
 /* grab other information: ms spent on each passage, highlights */
 let highlightList = [] // a list of tuples specifying highlights and indexes
