@@ -74,7 +74,8 @@ let playing // flag for whether the sound is playing
 /* variables to keep track of the amplitude of the input voice. we average
    them out, so we need the current and past amplitudes
  */
-let lastVoiceAmp=0, currentVoiceAmp
+let currentVoiceAmp
+let ampHistory, ampHistorySize
 
 
 function preload() {
@@ -106,6 +107,12 @@ function setup() {
     }
 
     dialogBox = new DialogBox(textList, highlightList, passageStartTimes)
+
+    /* keeps track of amplitude values from Adam's input sound file */
+    ampHistory = new Array()
+    ampHistorySize = 5
+    for (let i=0; i<ampHistorySize; i++)
+        ampHistory.push(0)
 }
 
 
@@ -404,20 +411,24 @@ function displayGlobe() {
             /*  average out the current voice amp with the previous value to
                 prevent large skips. similar to FFT.smooth()
                 TODO average out the last 10 values, maybe. use array pop0
+                    start with stack of 0's
+                    every frame, pop top, push cva = currentVoiceAmp
+                    cva = array.average
              */
-
             // currentVoiceAmp = (voice.getLevel() + lastVoiceAmp) / 2
-            currentVoiceAmp = (p5amp.getLevel() + lastVoiceAmp) / 2
+            //  currentVoiceAmp = (p5amp.getLevel() + lastVoiceAmp) / 2
+            ampHistory.pop()
+            ampHistory.push(p5amp.getLevel())
+            const average = arr => arr.reduce((a,b) => a + b, 0) / arr.length;
+            currentVoiceAmp = average(ampHistory)
 
             /** don't register audio amplitude until speech starts */
-
-
             /*  if Adam hasn't started speaking:
              *      voiceStartMillis is how long was it until we pushed start
              */
             if (!speechHasStarted())
                 currentVoiceAmp = 0
-            lastVoiceAmp = currentVoiceAmp
+            // lastVoiceAmp = currentVoiceAmp
 
             /*  we want the voice amp to have the greatest effect in the center
                 and then drop off somewhat quickly
