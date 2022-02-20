@@ -1,0 +1,107 @@
+[
+  {
+    "text": "So, you've accessed a network station. Well done, Samus. I have reviewed your vital signs and video log from the data you uploaded. ",
+    "highlightIndices": [
+      {
+        "start": 78,
+        "end": 100
+      }
+    ],
+
+    "ms": 15431
+  },
+
+  {
+    "text": "I've run a full analysis. But I cannot account for why you lost consciousness. My readings indicate dramatic physical changes in you. ",
+    "highlightIndices": [],
+    "ms": 28593
+  },
+
+  {
+    "text": "Whatever caused these changes seems to have stripped you of most abilities. You might call it physical amnesia. ",
+    "highlightIndices": [],
+    "ms": 38795
+  },
+
+  {
+    "text": "That brings me to your assailant. I am checking the Federation database against your video log. It appears to have been a Chozo. The attacker's identity is not yet clear. ",
+    "highlightIndices": [
+      {
+        "start": 123,
+        "end": 128
+      }
+    ],
+    "ms": 46763
+  },
+
+  {
+    "text": "I have determined that you are somewhere within the depths of ZDR. Your top priority should be to return to your ship on the surface. This situation is... precarious. Trust your instincts as you navigate upward. ",
+    "highlightIndices": [
+      {
+        "start": 49,
+        "end": 66
+      },
+
+      {
+        "start": 196,
+        "end": 211
+      }
+    ],
+    "ms": 60982
+  },
+
+  {
+    "text": "This planet appears to consist of multiple areas. Shuttles, elevators, and other modes of transport connect them. Keep an eye out for ways to reach the surface. ",
+    "highlightIndices": [
+      {
+        "start": 135,
+        "end": 160
+      }
+    ],
+    "ms": 76635
+  },
+
+  {
+    "text": "The ship's location is marked on your global map. Check it for yourself. ",
+    "highlightIndices": [
+      {
+        "start": 39,
+        "end": 49
+      }
+    ],
+    "ms": 91680
+  },
+
+  {
+    "text": "You may encounter pockets of low temperature. Your Metroid DNA renders you vulnerable to such environments. Spending time in cold areas will be harmful to you. ",
+    "highlightIndices": [
+      {
+        "start": 109,
+        "end": 160
+      }
+    ],
+    "ms": 96781
+  },
+
+  {
+    "text": "There are many such cold areas scattered underground. Do not enter them with your basic Power Suit. ",
+    "highlightIndices": [
+      {
+        "start": 73,
+        "end": 99
+      }
+    ],
+    "ms": 107449
+  },
+
+  {
+    "text": "One final thing. Underground interference is preventing radio transmissions. Check in with me at any network stations you find. ",
+    "highlightIndices": [
+      {
+        "start": 46,
+        "end": 76
+      }
+    ],
+    "ms": 114319
+  }
+]
