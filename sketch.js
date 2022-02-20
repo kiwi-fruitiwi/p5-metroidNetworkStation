@@ -23,6 +23,11 @@
  *      It uses the amplitude of the input sound file and a sine function or two
  *      to oscillate the surface of a sphere to emulate Adam's visual design
  *      and animation.
+ *
+ *  LIMITATIONS
+ *      Adam's voice has a background ambience track. This is recorded
+ *      in-game and cannot be separated. Thus, when Adam is not speaking,
+ *      his animation still happens due to the ambient noise.
  */
 
 let font
@@ -31,6 +36,7 @@ let cam // easycam!
 // the timestamp for when our audio starts. uses millis(), ms since sketch start
 let voiceStartMillis
 const SOUND_FILE_START = 12
+const audioSkipDurationMs = SOUND_FILE_START*1000
 
 /**
  * this can't be large because our charWidth graphics buffer is of finite
@@ -52,7 +58,8 @@ let passages // our json file input holding many passage objects
 
 let textList = [] // array of passage text
 let highlightList = [] // a list of tuples specifying highlights and indexes
-let passageStartTimes = [] // how long to wait before advancing a passage
+let passageStartTimes = [] // when does speech start for this passage?
+let passageEndTimes = [] // the timestamps for when speech ends
 
 
 /* empty dictionary for our character length cache. used for
@@ -61,7 +68,7 @@ let passageStartTimes = [] // how long to wait before advancing a passage
 let cache = {}
 
 /* variables for the p5-sphericalGeometry part of this project */
-let SPHERE_DETAIL = 24 // number of segments per θ and φ
+let SPHERE_DETAIL = 26 // number of segments per θ and φ
 let SPHERE_RADIUS = 100
 
 let globe // an n by n 2D array of points on a sphere in (r, θ, φ) triples
@@ -103,14 +110,16 @@ function setup() {
     for (let key in passages) {
         textList.push(passages[key]['text'])
         highlightList.push(passages[key]['highlightIndices'])
-        passageStartTimes.push(passages[key]['ms'])
+        passageStartTimes.push(passages[key]['speechStartTime'])
+        passageEndTimes.push(passages[key]['speechEndTime'])
     }
 
-    dialogBox = new DialogBox(textList, highlightList, passageStartTimes)
+    dialogBox = new DialogBox(textList, highlightList, passageStartTimes,
+        passageEndTimes)
 
     /* keeps track of amplitude values from Adam's input sound file */
     ampHistory = new Array()
-    ampHistorySize = 5
+    ampHistorySize = 3
     for (let i=0; i<ampHistorySize; i++)
         ampHistory.push(0)
 }
@@ -167,7 +176,7 @@ function openDialog(timeElapsed) {
 
 let yRot = 0.0005 // slight rotation of Adam before speech starts
 function draw() {
-    if (!speechHasStarted())
+    if (!speechStarted())
         cam.rotateY(yRot)
 
     // background(234, 34, 24) // original background
@@ -358,6 +367,14 @@ function populateGlobeArray() {
 }
 
 
+/**
+ * Animates and displays Adam. Adam's animation consists of two sine waves:
+ * one is a constant undulation radiating outward from his center, while the
+ * other is an impact wave at his center based on the amplitude of his speech.
+ *
+ * We use the superposition of the two waves to move quadrilaterals on the
+ * sphere's surface in and out.
+ */
 function displayGlobe() {
     /*  draw a circle for background color; this circle eliminates the need
         for all the faces of square pyramids to be drawn, because it will
@@ -375,8 +392,7 @@ function displayGlobe() {
     circle(0, 0, 101*2)
     pop()
 
-    /* iterate through our 2D array of globe vertices and make square shells!
-
+    /** iterate through our 2D array of globe vertices and make square shells!
      */
     for (let i = 0; i < globe.length-1; i++)
         for (let j = 0; j < globe[i].length-1; j++) {
@@ -408,37 +424,41 @@ function displayGlobe() {
                 voice amplitude.
              */
 
+
+            /** don't register audio amplitude until speech starts; stop
+             *  registering amplitude data when speech ends so that we don't
+             *  make oscillations for ambient noise
+             *  @param newAmpEntry the newest amplitude entry to our list we
+             *  take a running average of to smooth out the data
+             */
+            let newAmpEntry = p5amp.getLevel() // voice.getLevel() works for mic
+            if (!speechStarted() || dialogBox.speechEnded())
+                newAmpEntry = 0
+
             /*  average out the current voice amp with the previous value to
                 prevent large skips. similar to FFT.smooth()
-                TODO average out the last 10 values, maybe. use array pop0
-                    start with stack of 0's
-                    every frame, pop top, push cva = currentVoiceAmp
-                    cva = array.average
              */
-            // currentVoiceAmp = (voice.getLevel() + lastVoiceAmp) / 2
-            //  currentVoiceAmp = (p5amp.getLevel() + lastVoiceAmp) / 2
             ampHistory.pop()
-            ampHistory.push(p5amp.getLevel())
+            ampHistory.push(newAmpEntry)
             const average = arr => arr.reduce((a,b) => a + b, 0) / arr.length;
             currentVoiceAmp = average(ampHistory)
 
-            /** don't register audio amplitude until speech starts */
-            /*  if Adam hasn't started speaking:
-             *      voiceStartMillis is how long was it until we pushed start
-             */
-            if (!speechHasStarted())
-                currentVoiceAmp = 0
-            // lastVoiceAmp = currentVoiceAmp
 
-            /*  we want the voice amp to have the greatest effect in the center
-                and then drop off somewhat quickly
+            /**
+             *   we want the voice amp to have the greatest effect in the center
+             *   and then drop off somewhat quickly.
+             *
+             *   we map from [0, ¼] to [0. 1] because we want to throw out
+             *   extremely loud values. We divide by distance^n because we
+             *   want the sound to drop off at around the square of the
+             *   distance like real sound does. n=2 was too much, though.
              */
-            currentVoiceAmp = 50 * map(currentVoiceAmp, 0, 0.25, 0, 1)
-                / (distance**(1.3))
+            currentVoiceAmp = 150 * map(currentVoiceAmp, 0, 0.25, 0, 1)
+                / (distance**(1.5))
 
 
             // only render pyramids within a certain radius
-            const PYRAMID_DRAW_RADIUS = 72
+            const PYRAMID_DRAW_RADIUS = 68
 
             // we create a cheap color gradient to simulate ADAM's glow
             let fromColor = color(185, 12, 98)
@@ -453,7 +473,12 @@ function displayGlobe() {
             // don't render oscillations if we're outside the radius
             if (distance < PYRAMID_DRAW_RADIUS) {
                 fill(c)
-                psf = 0.05 * sin(distance/10 + angle) + (1.05-currentVoiceAmp)
+
+                /**
+                 *  the final pyramid movement is a superposition of two
+                 *  sine waves.
+                 */
+                psf = 0.03 * sin(distance/10 + angle) + (1.05-currentVoiceAmp)
                 // psf = constrain(psf, 0.1, 1.2)
 
                 // draw all non-bottom faces of the pyramid
@@ -479,15 +504,16 @@ function displayGlobe() {
 
 
 /** returns true if Adam has started speaking */
-function speechHasStarted() {
+function speechStarted() {
     /* seconds to jump ahead when playing the audio file, i.e. how
      many ms did we skip? */
-    const audioSkipDurationMs = SOUND_FILE_START*1000
     const firstPassageStartTime = dialogBox.startTimes[0] // 15431ms
-
     return (millis() >= voiceStartMillis +
         firstPassageStartTime - audioSkipDurationMs)
 }
+
+
+
 
 // prevent the context menu from showing up :3 nya~
 document.oncontextmenu = function () {

@@ -1,5 +1,5 @@
 class DialogBox {
-    constructor(passages, highlightIndices, startTimes) {
+    constructor(passages, highlightIndices, startTimes, endTimes) {
         /*  contains an array of passage texts:
                 ["passage 1...", "passage 2...", "passage 3...", etc.]
 
@@ -31,6 +31,7 @@ class DialogBox {
         // list of hardcoded (start, end) specifying which words to highlight
         this.highlightIndices = highlightIndices
         this.startTimes = startTimes // when this passage starts in the audio
+        this.endTimes = endTimes // timestamp when passage speech ends
 
         this.phase = 0 /* controls fading for triangle via alpha channel */
         this.radius = 8 /* "radius" of the next-passage triangle */
@@ -323,6 +324,16 @@ class DialogBox {
         // SOLUTION: textFrame is actually 1280x720 on a transparent background
         image(this.textFrame, 0, 0, width, height)
         cam.endHUD()
+    }
+
+
+    /** returns true if speech for the current passage has ended */
+    speechEnded() {
+        const currentPassageEndTimestamp = this.endTimes[this.passageIndex]
+        if (frameCount % 180 === 0)
+            console.log(passageEndTimes[this.passageIndex])
+        return (millis() >= voiceStartMillis - audioSkipDurationMs
+            + currentPassageEndTimestamp)
     }
 
 

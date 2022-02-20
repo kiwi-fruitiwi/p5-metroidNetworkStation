@@ -7,20 +7,22 @@
         "end": 100
       }
     ],
-
-    "ms": 15431
+    "speechStartTime": 15431,
+    "speechEndTime": 23855
   },
 
   {
     "text": "I've run a full analysis. But I cannot account for why you lost consciousness. My readings indicate dramatic physical changes in you. ",
     "highlightIndices": [],
-    "ms": 28593
+    "speechStartTime": 28593,
+    "speechEndTime": 37235
   },
 
   {
     "text": "Whatever caused these changes seems to have stripped you of most abilities. You might call it physical amnesia. ",
     "highlightIndices": [],
-    "ms": 38795
+    "speechStartTime": 38795,
+    "speechEndTime": 45817
   },
 
   {
@@ -31,7 +33,8 @@
         "end": 128
       }
     ],
-    "ms": 46763
+    "speechStartTime": 46763,
+    "speechEndTime": 57278
   },
 
   {
@@ -47,7 +50,8 @@
         "end": 211
       }
     ],
-    "ms": 60982
+    "speechStartTime": 60982,
+    "speechEndTime": 73660
   },
 
   {
@@ -58,7 +62,8 @@
         "end": 160
       }
     ],
-    "ms": 76635
+    "speechStartTime": 76635,
+    "speechEndTime": 86838
   },
 
   {
@@ -69,7 +74,8 @@
         "end": 49
       }
     ],
-    "ms": 91680
+    "speechStartTime": 91680,
+    "speechEndTime": 95783
   },
 
   {
@@ -80,7 +86,8 @@
         "end": 160
       }
     ],
-    "ms": 96781
+    "speechStartTime": 96781,
+    "speechEndTime": 106518
   },
 
   {
@@ -91,7 +98,8 @@
         "end": 99
       }
     ],
-    "ms": 107449
+    "speechStartTime": 107449,
+    "speechEndTime": 113000
   },
 
   {
@@ -102,6 +110,7 @@
         "end": 76
       }
     ],
-    "ms": 114319
+    "speechStartTime": 114319,
+    "speechEndTime": 122232
   }
 ]
