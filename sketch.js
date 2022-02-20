@@ -91,7 +91,7 @@ function setup() {
     textFont(font, FONT_SIZE)
 
     cam = new Dw.EasyCam(this._renderer, {distance: 240});
-    cam.rotateX(-PI/2)
+    cam.rotateX(-PI/2*1.04)
 
     // this enables microphone input
     // voice = new p5.AudioIn()
@@ -158,7 +158,11 @@ function openDialog(timeElapsed) {
 }
 
 
+let yRot = 0.0005 // slight rotation of Adam before speech starts
 function draw() {
+    if (!speechHasStarted())
+        cam.rotateY(yRot)
+
     // background(234, 34, 24) // original background
     background(223, 29, 35)
     ambientLight(250);
@@ -404,17 +408,26 @@ function displayGlobe() {
 
             // currentVoiceAmp = (voice.getLevel() + lastVoiceAmp) / 2
             currentVoiceAmp = (p5amp.getLevel() + lastVoiceAmp) / 2
+
+            /** don't register audio amplitude until speech starts */
+
+
+            /*  if Adam hasn't started speaking:
+             *      voiceStartMillis is how long was it until we pushed start
+             */
+            if (!speechHasStarted())
+                currentVoiceAmp = 0
             lastVoiceAmp = currentVoiceAmp
 
             /*  we want the voice amp to have the greatest effect in the center
                 and then drop off somewhat quickly
              */
             currentVoiceAmp = 50 * map(currentVoiceAmp, 0, 0.25, 0, 1)
-                / (distance**(1.9))
+                / (distance**(1.3))
 
 
             // only render pyramids within a certain radius
-            const PYRAMID_DRAW_RADIUS = 64
+            const PYRAMID_DRAW_RADIUS = 72
 
             // we create a cheap color gradient to simulate ADAM's glow
             let fromColor = color(185, 12, 98)
@@ -426,11 +439,12 @@ function displayGlobe() {
              */
             let psf = 1
 
-            // don't render oscillations if we're outside of the radius
+            // don't render oscillations if we're outside the radius
             if (distance < PYRAMID_DRAW_RADIUS) {
                 fill(c)
-                psf = 0.05 * sin(distance/10  + angle) + (1.05-currentVoiceAmp)
-                psf = constrain(psf, 0.1, 1.2)
+                psf = 0.05 * sin(distance/10 + angle) + (1.05-currentVoiceAmp)
+                // psf = constrain(psf, 0.1, 1.2)
+
                 // draw all non-bottom faces of the pyramid
                 beginShape(TRIANGLE_STRIP)
                 vertices.forEach(v => {
@@ -452,6 +466,17 @@ function displayGlobe() {
     angle -= 0.03 // this makes us radiate outward instead of inward
 }
 
+
+/** returns true if Adam has started speaking */
+function speechHasStarted() {
+    /* seconds to jump ahead when playing the audio file, i.e. how
+     many ms did we skip? */
+    const audioSkipDurationMs = SOUND_FILE_START*1000
+    const firstPassageStartTime = dialogBox.startTimes[0] // 15431ms
+
+    return (millis() >= voiceStartMillis +
+        firstPassageStartTime - audioSkipDurationMs)
+}
 
 // prevent the context menu from showing up :3 nya~
 document.oncontextmenu = function () {
