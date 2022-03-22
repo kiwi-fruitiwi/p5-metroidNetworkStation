@@ -28,6 +28,8 @@
  *      Adam's voice has a background ambience track. This is recorded
  *      in-game and cannot be separated. Thus, when Adam is not speaking,
  *      his animation still happens due to the ambient noise.
+ *
+ *      Solution: add additional JSON data → speechStartTime, speechEndTime
  */
 
 let font
@@ -122,6 +124,8 @@ function setup() {
     ampHistorySize = 3
     for (let i=0; i<ampHistorySize; i++)
         ampHistory.push(0)
+
+    populateGlobeArray()
 }
 
 
@@ -187,7 +191,6 @@ function draw() {
     // displayHUD()
 
     /** show animated Adam AI */
-    populateGlobeArray()
     displayGlobe()
     displayTorus()
 
@@ -435,11 +438,12 @@ function displayGlobe() {
             if (!speechStarted() || dialogBox.speechEnded())
                 newAmpEntry = 0
 
-            /*  average out the current voice amp with the previous value to
+            /*  average out the current voice amp with n previous values to
                 prevent large skips. similar to FFT.smooth()
              */
             ampHistory.pop()
             ampHistory.push(newAmpEntry)
+
             const average = arr => arr.reduce((a,b) => a + b, 0) / arr.length;
             currentVoiceAmp = average(ampHistory)
 

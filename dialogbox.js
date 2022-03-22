@@ -330,8 +330,8 @@ class DialogBox {
     /** returns true if speech for the current passage has ended */
     speechEnded() {
         const currentPassageEndTimestamp = this.endTimes[this.passageIndex]
-        if (frameCount % 180 === 0)
-            console.log(passageEndTimes[this.passageIndex])
+        // if (frameCount % 180 === 0)
+            // console.log(passageEndTimes[this.passageIndex])
         return (millis() >= voiceStartMillis - audioSkipDurationMs
             + currentPassageEndTimestamp)
     }
