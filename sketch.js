@@ -32,7 +32,7 @@
  *      Solution: add additional JSON data → speechStartTime, speechEndTime
  */
 
-let font
+let font, fwFont
 let cam // easycam!
 
 // the timestamp for when our audio starts. uses millis(), ms since sketch start
@@ -89,6 +89,8 @@ let ampHistory, ampHistorySize
 
 function preload() {
     font = loadFont('data/giga.ttf') // requires manual textWidth method
+    fwFont = loadFont('data/consola.ttf') // fixed width
+
     passages = loadJSON('passages.json')
     adamVoice = loadSound('data/artaria.mp3', null, null)
     playing = false
@@ -180,11 +182,13 @@ function openDialog(timeElapsed) {
 
 let yRot = 0.0005 // slight rotation of Adam before speech starts
 function draw() {
+    textFont(font, FONT_SIZE) // switch to gigamaru after debug corner's consola
+
     if (!speechStarted())
         cam.rotateY(yRot)
 
-    // background(234, 34, 24) // original background
-    background(223, 29, 35)
+    background(234, 34, 32) // original background
+    // background(223, 29, 35)
     ambientLight(250);
     directionalLight(0, 0, 10, .5, 1, 0); // z axis seems inverted
     // drawBlenderAxes()
@@ -217,6 +221,27 @@ function draw() {
             }
         }
     }
+
+    // displayDebugCorner()
+}
+
+
+function displayDebugCorner() {
+    cam.beginHUD(this._renderer, width, height)
+    textFont(fwFont, 14)
+    let DEBUG_MSG = "cody says hi"
+
+    /** debug corner 🍁  */
+    const LEFT_MARGIN = 10
+    const DEBUG_Y_OFFSET = height - 10 /* floor of debug corner */
+    const LINE_HEIGHT = textAscent() + textDescent() + 2 /* 2 = lineSpacing */
+    fill(0, 0, 100, 100) /* white */
+    strokeWeight(0)
+    textFont()
+    text(`framerate: ${frameRate().toFixed(2)}`, LEFT_MARGIN, DEBUG_Y_OFFSET)
+    text(`cache length: ${cache.length}`, LEFT_MARGIN, DEBUG_Y_OFFSET - LINE_HEIGHT)
+    text(`debug: ${DEBUG_MSG}`, LEFT_MARGIN, DEBUG_Y_OFFSET - 2*LINE_HEIGHT)
+    cam.endHUD()
 }
 
 
